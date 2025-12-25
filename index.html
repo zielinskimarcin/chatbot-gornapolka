@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Górna Półka - Klon Wizualny</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #222; --accent: #8b5e3c; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: #f9f9f9; color: var(--primary); }
+        
+        /* Prosta Nawigacja */
+        nav { display: flex; justify-content: space-between; padding: 20px 50px; background: white; border-bottom: 1px solid #eee; }
+        .logo { font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+        .menu span { margin-left: 20px; font-size: 14px; cursor: pointer; color: #666; }
+
+        /* Hero Section (imitacja zdjęcia) */
+        .hero { position: relative; height: 80vh; background: #e0dcd3; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .hero-content { text-align: center; z-index: 2; }
+        .hero h1 { font-size: 60px; margin: 0; font-weight: 300; text-transform: uppercase; letter-spacing: 5px; }
+        .hero p { font-size: 18px; margin: 20px 0; }
+        .btn-dummy { padding: 15px 40px; border: 1px solid var(--primary); background: transparent; cursor: pointer; text-transform: uppercase; }
+
+        /* Chat Widget */
+        #chat-widget { position: fixed; bottom: 30px; right: 30px; z-index: 1000; }
+        #chat-button { width: 60px; height: 60px; border-radius: 50%; background: var(--primary); color: white; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; }
+        
+        #chat-window { display: none; width: 350px; height: 500px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); flex-direction: column; overflow: hidden; position: absolute; bottom: 80px; right: 0; border: 1px solid #eee; }
+        #chat-header { background: var(--primary); color: white; padding: 20px; font-weight: 600; }
+        #chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 14px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 8px 12px; border-radius: 10px; max-width: 80%; }
+        .user { align-self: flex-end; background: #eee; }
+        .bot { align-self: flex-start; background: #f0e6dd; border: 1px solid #dcc; }
+        #chat-input-area { display: flex; border-top: 1px solid #eee; }
+        #chat-input { flex: 1; border: none; padding: 15px; outline: none; }
+        #send-btn { background: white; border: none; padding: 15px; cursor: pointer; color: var(--accent); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo">GÓRNA PÓŁKA</div>
+    <div class="menu"><span>MEBLE</span><span>POMIESZCZENIA</span><span>KOLEKCJE</span><span>PROBKI</span></div>
+</nav>
+
+<section class="hero">
+    <div class="hero-content">
+        <h1>Nowa kolekcja SKRA</h1>
+        <p>GÓRNA PÓŁKA X STUDIO SZPUNAR</p>
+        <button class="btn-dummy">ZOBACZ</button>
+    </div>
+</section>
+
+<div id="chat-widget">
+    <div id="chat-window">
+        <div id="chat-header">Asystent Górna Półka</div>
+        <div id="chat-messages"></div>
+        <div id="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Zadaj pytanie o meble...">
+            <button id="send-btn">➔</button>
+        </div>
+    </div>
+    <button id="chat-button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    </button>
+</div>
+
+<script>
+    const chatBtn = document.getElementById('chat-button');
+    const chatWindow = document.getElementById('chat-window');
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const messages = document.getElementById('chat-messages');
+
+    chatBtn.addEventListener('click', () => {
+        chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
+    });
+
+    async function sendMessage() {
+        const text = input.value;
+        if (!text) return;
+
+        // Dodaj wiadomość użytkownika do UI
+        messages.innerHTML += `<div class="msg user">${text}</div>`;
+        input.value = '';
+
+        // WYŚLIJ DO n8n
+        try {
+            const response = await fetch('TWÓJ_URL_WEBHOOKA_Z_N8N', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await response.json();
+            
+            // Dodaj odpowiedź bota do UI
+            messages.innerHTML += `<div class="msg bot">${data.output || data.response || "Błąd połączenia"}</div>`;
+            messages.scrollTop = messages.scrollHeight;
+        } catch (e) {
+            messages.innerHTML += `<div class="msg bot">Błąd: Upewnij się, że webhook w n8n jest aktywny.</div>`;
+        }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    input.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+</script>
+
+</body>
+</html>
