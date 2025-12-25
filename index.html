@@ -4,33 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatbot Górna Półka</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        #chat-container { width: 400px; height: 500px; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
-        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .message { padding: 8px 12px; border-radius: 15px; max-width: 80%; font-size: 14px; line-height: 1.4; }
-        .user { align-self: flex-end; background: #007bff; color: white; }
-        .bot { align-self: flex-start; background: #e9e9eb; color: #333; }
-        #input-area { display: flex; border-top: 1px solid #ddd; padding: 10px; }
-        #user-input { flex: 1; border: 1px solid #ddd; border-radius: 5px; padding: 8px; outline: none; }
-        #send-btn { background: #007bff; color: white; border: none; padding: 8px 15px; margin-left: 5px; border-radius: 5px; cursor: pointer; }
+        /* Stylistyka nawiązująca do gornapolka.com */
+        :root {
+            --gp-dark: #1a1a1a;
+            --gp-gold: #c5a059;
+            --gp-white: #ffffff;
+            --gp-gray: #333333;
+        }
+
+        body { font-family: 'Inter', sans-serif; margin: 0; background: transparent; }
+
+        /* Ikonka czatu w rogu */
+        #chat-widget-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--gp-dark);
+            color: var(--gp-gold);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            border: 2px solid var(--gp-gold);
+            font-size: 24px;
+        }
+
+        /* Kontener czatu */
+        #chat-container {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 380px;
+            height: 500px;
+            background: var(--gp-dark);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none; /* Ukryty na starcie */
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--gp-gray);
+            z-index: 1000;
+        }
+
+        /* Nagłówek */
+        #chat-header {
+            background: var(--gp-dark);
+            padding: 15px;
+            border-bottom: 1px solid var(--gp-gray);
+            color: var(--gp-white);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #chat-header img { width: 30px; filter: brightness(0) invert(1); }
+
+        /* Wiadomości */
+        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: #121212; }
+        
+        .message { padding: 10px 14px; border-radius: 8px; max-width: 85%; font-size: 14px; line-height: 1.5; }
+        .user { align-self: flex-end; background: var(--gp-gold); color: black; font-weight: 500; }
+        .bot { align-self: flex-start; background: var(--gp-gray); color: var(--gp-white); }
+
+        /* Pole wpisywania */
+        #input-area { display: flex; padding: 15px; background: var(--gp-dark); border-top: 1px solid var(--gp-gray); }
+        #user-input { flex: 1; background: #222; border: 1px solid var(--gp-gray); color: white; border-radius: 4px; padding: 10px; outline: none; }
+        #send-btn { background: var(--gp-gold); color: black; border: none; padding: 10px 15px; margin-left: 8px; border-radius: 4px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
+<div id="chat-widget-button" onclick="toggleChat()">
+    <i class="fas fa-comments"></i>
+</div>
+
 <div id="chat-container">
+    <div id="chat-header">
+        <strong>Górna Półka - Doradca AI</strong>
+    </div>
     <div id="messages"></div>
     <div id="input-area">
-        <input type="text" id="user-input" placeholder="Zadaj pytanie...">
-        <button id="send-btn">Wyślij</button>
+        <input type="text" id="user-input" placeholder="W czym mogę pomóc?">
+        <button id="send-btn" onclick="sendMessage()">Wyślij</button>
     </div>
 </div>
 
 <script>
-    const webhookUrl = 'https://mz11.app.n8n.cloud/webhook/chat-gornapolka'; // <--- WKLEJ TUTAJ URL
+    const webhookUrl = 'https://mz11.app.n8n.cloud/webhook/chat-gornapolka';
     const messagesContainer = document.getElementById('messages');
     const userInput = document.getElementById('user-input');
-    const sendBtn = document.getElementById('send-btn');
+    const chatContainer = document.getElementById('chat-container');
+
+    function toggleChat() {
+        chatContainer.style.display = chatContainer.style.display === 'flex' ? 'none' : 'flex';
+    }
 
     function addMessage(text, sender) {
         const div = document.createElement('div');
@@ -54,18 +128,25 @@
                 body: JSON.stringify({ message: message })
             });
 
-            if (!response.ok) throw new Error('Błąd serwera');
+            const rawData = await response.text();
+            
+            // FUNKCJA NAPRAWIAJĄCA: Jeśli n8n wyśle JSON-a w tekście, wyciągamy tylko 'output'
+            try {
+                const jsonData = JSON.parse(rawData);
+                // Szukamy pola 'output' w głębi obiektu, który pokazałeś
+                const cleanText = jsonData.output || Object.values(jsonData)[0]?.output || rawData;
+                addMessage(cleanText, 'bot');
+            } catch (e) {
+                // Jeśli to nie JSON, wyświetlamy jako czysty tekst
+                addMessage(rawData, 'bot');
+            }
 
-            // Pobieramy odpowiedź jako tekst, aby uniknąć [object Object]
-            const botText = await response.text();
-            addMessage(botText, 'bot');
         } catch (error) {
-            addMessage('Błąd: Nie udało się połączyć z botem.', 'bot');
+            addMessage('Błąd połączenia. Spróbuj później.', 'bot');
             console.error(error);
         }
     }
 
-    sendBtn.addEventListener('click', sendMessage);
     userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 </script>
 
