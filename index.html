@@ -9,8 +9,8 @@
 :root {
   --black: #0b0b0b;
   --white: #ffffff;
-  --gray: #e5e5e5;
-  --border: #d0d0d0;
+  --border: #000000;
+  --gray: #999;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,7 +40,6 @@ nav {
   display: flex;
   gap: 28px;
   font-size: 14px;
-  letter-spacing: .4px;
 }
 
 nav span { cursor: pointer; opacity: .9; }
@@ -59,7 +58,6 @@ nav span:hover { opacity: 1; }
   position: relative;
 }
 
-/* PRZYCIEMNIENIE */
 .hero::after {
   content: "";
   position: absolute;
@@ -67,35 +65,38 @@ nav span:hover { opacity: 1; }
   background: rgba(0,0,0,.45);
 }
 
-/* ---------- CHAT BUTTON ---------- */
+/* ---------- CHAT TOGGLE ---------- */
 #chat-toggle {
   position: fixed;
   bottom: 32px;
   right: 32px;
-  width: 52px;
-  height: 52px;
-  border: 1px solid black;
-  background: white;
-  color: black;
-  font-size: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: black;
+  border: 1px solid white;
   cursor: pointer;
   z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-#chat-toggle:hover {
-  background: black;
-  color: white;
+#chat-toggle svg {
+  width: 26px;
+  height: 26px;
+  fill: white;
 }
 
 /* ---------- CHAT WINDOW ---------- */
 #chatbox {
   position: fixed;
-  bottom: 100px;
   right: 32px;
-  width: 360px;
-  height: 520px;
+  bottom: 104px;
+  width: 420px;
+  height: 420px;
   background: white;
-  border: 1px solid var(--border);
+  border: 1px solid black;
   display: none;
   flex-direction: column;
   z-index: 1300;
@@ -103,8 +104,8 @@ nav span:hover { opacity: 1; }
 
 /* ---------- CHAT HEADER ---------- */
 #chat-header {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  border-bottom: 1px solid black;
   font-size: 14px;
   font-weight: 600;
 }
@@ -120,7 +121,7 @@ nav span:hover { opacity: 1; }
 }
 
 .msg {
-  max-width: 80%;
+  max-width: 75%;
   padding: 10px 12px;
   font-size: 14px;
   line-height: 1.4;
@@ -134,7 +135,7 @@ nav span:hover { opacity: 1; }
 
 .bot {
   align-self: flex-start;
-  border: 1px solid var(--border);
+  border: 1px solid #ccc;
   background: #fafafa;
 }
 
@@ -147,7 +148,7 @@ nav span:hover { opacity: 1; }
 .loader span {
   width: 6px;
   height: 6px;
-  background: #999;
+  background: var(--gray);
   border-radius: 50%;
   animation: blink 1.4s infinite both;
 }
@@ -163,7 +164,7 @@ nav span:hover { opacity: 1; }
 
 /* ---------- INPUT ---------- */
 #input-container {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid black;
   padding: 12px;
   display: flex;
   gap: 8px;
@@ -171,10 +172,9 @@ nav span:hover { opacity: 1; }
 
 #userInput {
   flex: 1;
-  border: 1px solid var(--border);
+  border: 1px solid black;
   padding: 10px;
   font-size: 14px;
-  outline: none;
 }
 
 #sendBtn {
@@ -184,8 +184,6 @@ nav span:hover { opacity: 1; }
   padding: 10px 14px;
   cursor: pointer;
 }
-
-#sendBtn:hover { opacity: .9; }
 </style>
 </head>
 
@@ -196,7 +194,7 @@ nav span:hover { opacity: 1; }
   <nav>
     <span>Meble</span>
     <span>Pomieszczenia</span>
-    <span>Outlet -40%</span>
+    <span>Outlet</span>
     <span>Kolekcje</span>
     <span>Dekoracje</span>
     <span>Próbki</span>
@@ -206,8 +204,14 @@ nav span:hover { opacity: 1; }
 
 <section class="hero"></section>
 
-<button id="chat-toggle">✉</button>
+<!-- CHAT BUTTON -->
+<button id="chat-toggle" aria-label="Otwórz czat">
+  <svg id="icon-mail" viewBox="0 0 24 24">
+    <path d="M2 4h20v16H2V4zm10 7L4 6v12h16V6l-8 5z"/>
+  </svg>
+</button>
 
+<!-- CHAT WINDOW -->
 <div id="chatbox">
   <div id="chat-header">Górna Półka · Asystent</div>
   <div id="chat-window"></div>
@@ -219,20 +223,32 @@ nav span:hover { opacity: 1; }
 
 <script>
 const WEBHOOK_URL = "https://mz11.app.n8n.cloud/webhook/chat-gornapolka";
-const chatbox = document.getElementById("chatbox");
+
 const toggle = document.getElementById("chat-toggle");
+const chatbox = document.getElementById("chatbox");
 const chatWindow = document.getElementById("chat-window");
 const input = document.getElementById("userInput");
 
+const mailIcon = `
+<svg viewBox="0 0 24 24">
+  <path d="M2 4h20v16H2V4zm10 7L4 6v12h16V6l-8 5z"/>
+</svg>`;
+
+const closeIcon = `
+<svg viewBox="0 0 24 24">
+  <path d="M18.3 5.7L12 12l6.3 6.3-1.4 1.4L12 13.4l-6.3 6.3-1.4-1.4L10.6 12 4.3 5.7l1.4-1.4L12 10.6l6.3-6.3z"/>
+</svg>`;
+
 toggle.onclick = () => {
-  chatbox.style.display = chatbox.style.display === "flex" ? "none" : "flex";
+  const open = chatbox.style.display === "flex";
+  chatbox.style.display = open ? "none" : "flex";
+  toggle.innerHTML = open ? mailIcon : closeIcon;
 };
 
-function addMessage(content, type, isHTML = false) {
+function addMessage(content, type, html=false) {
   const div = document.createElement("div");
   div.className = "msg " + type;
-  if (isHTML) div.innerHTML = content;
-  else div.innerText = content;
+  div[html ? "innerHTML" : "innerText"] = content;
   chatWindow.appendChild(div);
   chatWindow.scrollTop = chatWindow.scrollHeight;
   return div;
@@ -260,8 +276,7 @@ async function send() {
 
     const data = await res.json();
     loader.remove();
-    const reply = data.output || data[0]?.output || "Błąd odpowiedzi";
-    addMessage(reply, "bot");
+    addMessage(data.output || data[0]?.output || "Błąd odpowiedzi", "bot");
   } catch {
     loader.remove();
     addMessage("Błąd połączenia.", "bot");
