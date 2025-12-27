@@ -1,91 +1,207 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Górna Półka - Pomoc</title>
-    <style>
-        :root { --gold: #c5a059; --dark: #121212; --msg-bg: #1e1e1e; }
-        body { font-family: -apple-system, sans-serif; background: var(--dark); color: white; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        
-        #chat-window { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        
-        .msg { max-width: 80%; padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.4; }
-        .user { align-self: flex-end; background: var(--gold); color: black; border-bottom-right-radius: 2px; }
-        .bot { align-self: flex-start; background: var(--msg-bg); color: #eee; border-bottom-left-radius: 2px; border: 1px solid #333; }
-        
-        #input-container { padding: 20px; background: #0a0a0a; display: flex; gap: 10px; border-top: 1px solid #222; }
-        input { flex: 1; background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; outline: none; }
-        input:focus { border-color: var(--gold); }
-        button { background: var(--gold); color: black; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        button:hover { opacity: 0.9; }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Górna Półka</title>
+
+<style>
+:root {
+  --gold: #c5a059;
+  --dark: #121212;
+  --panel: #1a1a1a;
+  --msg-bg: #1e1e1e;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: url("tlo.jpg") center / cover no-repeat fixed;
+}
+
+/* ---------- CHAT BUTTON ---------- */
+#chat-toggle {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: black;
+  font-size: 22px;
+  border: none;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 10px 30px rgba(0,0,0,.4);
+}
+
+#chat-toggle:hover {
+  transform: scale(1.05);
+}
+
+/* ---------- CHAT WINDOW ---------- */
+#chatbox {
+  position: fixed;
+  top: 90px;
+  right: 24px;
+  width: 360px;
+  height: 520px;
+  background: var(--dark);
+  border-radius: 18px;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 999;
+  box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  border: 1px solid #222;
+}
+
+/* ---------- HEADER ---------- */
+#chat-header {
+  padding: 16px;
+  background: #0b0b0b;
+  border-bottom: 1px solid #222;
+  font-weight: 600;
+  letter-spacing: .5px;
+}
+
+/* ---------- MESSAGES ---------- */
+#chat-window {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.msg {
+  max-width: 80%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.user {
+  align-self: flex-end;
+  background: var(--gold);
+  color: black;
+  border-bottom-right-radius: 4px;
+}
+
+.bot {
+  align-self: flex-start;
+  background: var(--msg-bg);
+  color: #eee;
+  border: 1px solid #333;
+  border-bottom-left-radius: 4px;
+}
+
+/* ---------- INPUT ---------- */
+#input-container {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid #222;
+  background: #0b0b0b;
+}
+
+#userInput {
+  flex: 1;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: white;
+  padding: 10px 12px;
+  border-radius: 8px;
+  outline: none;
+}
+
+#userInput:focus {
+  border-color: var(--gold);
+}
+
+#sendBtn {
+  background: var(--gold);
+  color: black;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+</style>
 </head>
+
 <body>
 
-<div id="chat-window"></div>
-<div id="input-container">
-    <input type="text" id="userInput" placeholder="Napisz wiadomość...">
-    <button onclick="send()">Wyślij</button>
+<button id="chat-toggle">💬</button>
+
+<div id="chatbox">
+  <div id="chat-header">Górna Półka · Pomoc</div>
+
+  <div id="chat-window"></div>
+
+  <div id="input-container">
+    <input id="userInput" placeholder="Napisz wiadomość..." />
+    <button id="sendBtn">Wyślij</button>
+  </div>
 </div>
 
 <script>
-    const WEBHOOK_URL = 'https://mz11.app.n8n.cloud/webhook/chat-gornapolka';
-    const chatWindow = document.getElementById('chat-window');
-    const inputField = document.getElementById('userInput');
+const WEBHOOK_URL = "https://mz11.app.n8n.cloud/webhook/chat-gornapolka";
 
-    function addMessage(text, type) {
-        const div = document.createElement('div');
-        div.className = `msg ${type}`;
-        div.innerText = text;
-        chatWindow.appendChild(div);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
+const chatbox = document.getElementById("chatbox");
+const toggle = document.getElementById("chat-toggle");
+const chatWindow = document.getElementById("chat-window");
+const input = document.getElementById("userInput");
 
-    async function send() {
-        const text = inputField.value.trim();
-        if (!text) return;
+toggle.onclick = () => {
+  chatbox.style.display = chatbox.style.display === "flex" ? "none" : "flex";
+};
 
-        addMessage(text, 'user');
-        inputField.value = '';
+function addMessage(text, type) {
+  const div = document.createElement("div");
+  div.className = "msg " + type;
+  div.innerText = text;
+  chatWindow.appendChild(div);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
 
-        try {
-            const response = await fetch(WEBHOOK_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text })
-            });
+async function send() {
+  const text = input.value.trim();
+  if (!text) return;
 
-            const data = await response.json();
-            
-            // --- AGRESYWNE CZYSZCZENIE DANYCH ---
-            // Ten fragment szuka Twojego 'output' bez względu na to, jak głęboko n8n go ukryje
-            let botReply = "Przepraszam, wystąpił błąd odpowiedzi.";
+  addMessage(text, "user");
+  input.value = "";
 
-            if (typeof data === 'string') {
-                botReply = data;
-            } else if (Array.isArray(data) && data[0]?.output) {
-                botReply = data[0].output;
-            } else if (data.output) {
-                botReply = data.output;
-            } else {
-                // Jeśli n8n wysłało ten dziwny obiekt, który widziałeś:
-                const firstKey = Object.keys(data)[0];
-                if (data[firstKey] && Array.isArray(data[firstKey])) {
-                    botReply = data[firstKey][0].output;
-                } else {
-                    botReply = JSON.stringify(data);
-                }
-            }
+  try {
+    const res = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text })
+    });
 
-            addMessage(botReply, 'bot');
-        } catch (err) {
-            addMessage("Błąd połączenia z serwerem.", 'bot');
-            console.error(err);
-        }
-    }
+    const data = await res.json();
+    let reply = "Wystąpił błąd.";
 
-    inputField.addEventListener('keypress', (e) => { if(e.key === 'Enter') send(); });
+    if (typeof data === "string") reply = data;
+    else if (data.output) reply = data.output;
+    else if (Array.isArray(data)) reply = data[0]?.output || reply;
+    else reply = JSON.stringify(data);
+
+    addMessage(reply, "bot");
+  } catch {
+    addMessage("Błąd połączenia.", "bot");
+  }
+}
+
+document.getElementById("sendBtn").onclick = send;
+input.addEventListener("keydown", e => e.key === "Enter" && send());
 </script>
 
 </body>
