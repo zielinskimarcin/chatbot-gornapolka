@@ -59,63 +59,38 @@ nav span:hover { opacity: 1; }
   position: relative;
 }
 
+/* PRZYCIEMNIENIE */
 .hero::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,.25);
-}
-
-.hero-content {
-  position: absolute;
-  left: 64px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: white;
-  z-index: 1;
-}
-
-.hero h1 {
-  font-size: 72px;
-  font-weight: 300;
-  line-height: 1.05;
-  letter-spacing: 1px;
-}
-
-.hero h1 span {
-  display: block;
-}
-
-.hero p {
-  margin-top: 24px;
-  font-size: 16px;
-  letter-spacing: .5px;
+  background: rgba(0,0,0,.45);
 }
 
 /* ---------- CHAT BUTTON ---------- */
 #chat-toggle {
   position: fixed;
-  top: 16px;
+  bottom: 32px;
   right: 32px;
-  width: 44px;
-  height: 44px;
-  border: 1px solid white;
-  background: transparent;
-  color: white;
-  font-size: 18px;
+  width: 52px;
+  height: 52px;
+  border: 1px solid black;
+  background: white;
+  color: black;
+  font-size: 20px;
   cursor: pointer;
-  z-index: 1100;
+  z-index: 1200;
 }
 
 #chat-toggle:hover {
-  background: white;
-  color: black;
+  background: black;
+  color: white;
 }
 
 /* ---------- CHAT WINDOW ---------- */
 #chatbox {
   position: fixed;
-  top: 80px;
+  bottom: 100px;
   right: 32px;
   width: 360px;
   height: 520px;
@@ -123,7 +98,7 @@ nav span:hover { opacity: 1; }
   border: 1px solid var(--border);
   display: none;
   flex-direction: column;
-  z-index: 1200;
+  z-index: 1300;
 }
 
 /* ---------- CHAT HEADER ---------- */
@@ -161,6 +136,29 @@ nav span:hover { opacity: 1; }
   align-self: flex-start;
   border: 1px solid var(--border);
   background: #fafafa;
+}
+
+/* ---------- LOADER ---------- */
+.loader {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.loader span {
+  width: 6px;
+  height: 6px;
+  background: #999;
+  border-radius: 50%;
+  animation: blink 1.4s infinite both;
+}
+
+.loader span:nth-child(2) { animation-delay: .2s; }
+.loader span:nth-child(3) { animation-delay: .4s; }
+
+@keyframes blink {
+  0% { opacity: .2; }
+  20% { opacity: 1; }
+  100% { opacity: .2; }
 }
 
 /* ---------- INPUT ---------- */
@@ -206,17 +204,9 @@ nav span:hover { opacity: 1; }
   </nav>
 </header>
 
-<button id="chat-toggle">✉</button>
+<section class="hero"></section>
 
-<section class="hero">
-  <div class="hero-content">
-    <h1>
-      <span>OUTLET</span>
-      <span>WSZYSTKO -40%</span>
-    </h1>
-    <p>ZŁAP NAJNIŻSZE CENY W ROKU</p>
-  </div>
-</section>
+<button id="chat-toggle">✉</button>
 
 <div id="chatbox">
   <div id="chat-header">Górna Półka · Asystent</div>
@@ -238,19 +228,28 @@ toggle.onclick = () => {
   chatbox.style.display = chatbox.style.display === "flex" ? "none" : "flex";
 };
 
-function addMessage(text, type) {
+function addMessage(content, type, isHTML = false) {
   const div = document.createElement("div");
   div.className = "msg " + type;
-  div.innerText = text;
+  if (isHTML) div.innerHTML = content;
+  else div.innerText = content;
   chatWindow.appendChild(div);
   chatWindow.scrollTop = chatWindow.scrollHeight;
+  return div;
 }
 
 async function send() {
   const text = input.value.trim();
   if (!text) return;
+
   addMessage(text, "user");
   input.value = "";
+
+  const loader = addMessage(
+    `<div class="loader"><span></span><span></span><span></span></div>`,
+    "bot",
+    true
+  );
 
   try {
     const res = await fetch(WEBHOOK_URL, {
@@ -258,10 +257,13 @@ async function send() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: text })
     });
+
     const data = await res.json();
+    loader.remove();
     const reply = data.output || data[0]?.output || "Błąd odpowiedzi";
     addMessage(reply, "bot");
   } catch {
+    loader.remove();
     addMessage("Błąd połączenia.", "bot");
   }
 }
