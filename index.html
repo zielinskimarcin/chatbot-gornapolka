@@ -2,74 +2,139 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Górna Półka</title>
 
 <style>
 :root {
-  --gold: #c5a059;
-  --dark: #121212;
-  --panel: #1a1a1a;
-  --msg-bg: #1e1e1e;
+  --black: #0b0b0b;
+  --white: #ffffff;
+  --gray: #e5e5e5;
+  --border: #d0d0d0;
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  margin: 0;
-  height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: url("tlo.jpg") center / cover no-repeat fixed;
+  background: #fff;
+  color: var(--black);
+}
+
+/* ---------- HEADER ---------- */
+header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 72px;
+  background: var(--black);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  z-index: 1000;
+}
+
+nav {
+  display: flex;
+  gap: 28px;
+  font-size: 14px;
+  letter-spacing: .4px;
+}
+
+nav span { cursor: pointer; opacity: .9; }
+nav span:hover { opacity: 1; }
+
+.logo {
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* ---------- HERO ---------- */
+.hero {
+  margin-top: 72px;
+  height: calc(100vh - 72px);
+  background: url("tlo.jpg") center / cover no-repeat;
+  position: relative;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.25);
+}
+
+.hero-content {
+  position: absolute;
+  left: 64px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: white;
+  z-index: 1;
+}
+
+.hero h1 {
+  font-size: 72px;
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: 1px;
+}
+
+.hero h1 span {
+  display: block;
+}
+
+.hero p {
+  margin-top: 24px;
+  font-size: 16px;
+  letter-spacing: .5px;
 }
 
 /* ---------- CHAT BUTTON ---------- */
 #chat-toggle {
   position: fixed;
-  top: 24px;
-  right: 24px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--gold);
-  color: black;
-  font-size: 22px;
-  border: none;
+  top: 16px;
+  right: 32px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid white;
+  background: transparent;
+  color: white;
+  font-size: 18px;
   cursor: pointer;
-  z-index: 1000;
-  box-shadow: 0 10px 30px rgba(0,0,0,.4);
+  z-index: 1100;
 }
 
 #chat-toggle:hover {
-  transform: scale(1.05);
+  background: white;
+  color: black;
 }
 
 /* ---------- CHAT WINDOW ---------- */
 #chatbox {
   position: fixed;
-  top: 90px;
-  right: 24px;
+  top: 80px;
+  right: 32px;
   width: 360px;
   height: 520px;
-  background: var(--dark);
-  border-radius: 18px;
+  background: white;
+  border: 1px solid var(--border);
   display: none;
   flex-direction: column;
-  overflow: hidden;
-  z-index: 999;
-  box-shadow: 0 20px 60px rgba(0,0,0,.6);
-  border: 1px solid #222;
+  z-index: 1200;
 }
 
-/* ---------- HEADER ---------- */
+/* ---------- CHAT HEADER ---------- */
 #chat-header {
-  padding: 16px;
-  background: #0b0b0b;
-  border-bottom: 1px solid #222;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: .5px;
 }
 
-/* ---------- MESSAGES ---------- */
+/* ---------- CHAT MESSAGES ---------- */
 #chat-window {
   flex: 1;
   padding: 16px;
@@ -81,80 +146,89 @@ body {
 
 .msg {
   max-width: 80%;
-  padding: 12px 14px;
-  border-radius: 12px;
+  padding: 10px 12px;
   font-size: 14px;
   line-height: 1.4;
 }
 
 .user {
   align-self: flex-end;
-  background: var(--gold);
-  color: black;
-  border-bottom-right-radius: 4px;
+  background: black;
+  color: white;
 }
 
 .bot {
   align-self: flex-start;
-  background: var(--msg-bg);
-  color: #eee;
-  border: 1px solid #333;
-  border-bottom-left-radius: 4px;
+  border: 1px solid var(--border);
+  background: #fafafa;
 }
 
 /* ---------- INPUT ---------- */
 #input-container {
+  border-top: 1px solid var(--border);
+  padding: 12px;
   display: flex;
   gap: 8px;
-  padding: 12px;
-  border-top: 1px solid #222;
-  background: #0b0b0b;
 }
 
 #userInput {
   flex: 1;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  color: white;
-  padding: 10px 12px;
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 10px;
+  font-size: 14px;
   outline: none;
 }
 
-#userInput:focus {
-  border-color: var(--gold);
-}
-
 #sendBtn {
-  background: var(--gold);
-  color: black;
+  background: black;
+  color: white;
   border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 600;
+  padding: 10px 14px;
   cursor: pointer;
 }
+
+#sendBtn:hover { opacity: .9; }
 </style>
 </head>
 
 <body>
 
-<button id="chat-toggle">💬</button>
+<header>
+  <div class="logo">GÓRNA PÓŁKA</div>
+  <nav>
+    <span>Meble</span>
+    <span>Pomieszczenia</span>
+    <span>Outlet -40%</span>
+    <span>Kolekcje</span>
+    <span>Dekoracje</span>
+    <span>Próbki</span>
+    <span>Kontakt</span>
+  </nav>
+</header>
+
+<button id="chat-toggle">✉</button>
+
+<section class="hero">
+  <div class="hero-content">
+    <h1>
+      <span>OUTLET</span>
+      <span>WSZYSTKO -40%</span>
+    </h1>
+    <p>ZŁAP NAJNIŻSZE CENY W ROKU</p>
+  </div>
+</section>
 
 <div id="chatbox">
-  <div id="chat-header">Górna Półka · Pomoc</div>
-
+  <div id="chat-header">Górna Półka · Asystent</div>
   <div id="chat-window"></div>
-
   <div id="input-container">
-    <input id="userInput" placeholder="Napisz wiadomość..." />
-    <button id="sendBtn">Wyślij</button>
+    <input id="userInput" placeholder="Napisz wiadomość…" />
+    <button id="sendBtn">→</button>
   </div>
 </div>
 
 <script>
 const WEBHOOK_URL = "https://mz11.app.n8n.cloud/webhook/chat-gornapolka";
-
 const chatbox = document.getElementById("chatbox");
 const toggle = document.getElementById("chat-toggle");
 const chatWindow = document.getElementById("chat-window");
@@ -175,7 +249,6 @@ function addMessage(text, type) {
 async function send() {
   const text = input.value.trim();
   if (!text) return;
-
   addMessage(text, "user");
   input.value = "";
 
@@ -185,15 +258,8 @@ async function send() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: text })
     });
-
     const data = await res.json();
-    let reply = "Wystąpił błąd.";
-
-    if (typeof data === "string") reply = data;
-    else if (data.output) reply = data.output;
-    else if (Array.isArray(data)) reply = data[0]?.output || reply;
-    else reply = JSON.stringify(data);
-
+    const reply = data.output || data[0]?.output || "Błąd odpowiedzi";
     addMessage(reply, "bot");
   } catch {
     addMessage("Błąd połączenia.", "bot");
