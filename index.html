@@ -21,39 +21,9 @@ body {
   color: var(--black);
 }
 
-/* ---------- HEADER ---------- */
-header {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  height: 72px;
-  background: var(--black);
-  color: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32px;
-  z-index: 1000;
-}
-
-nav {
-  display: flex;
-  gap: 28px;
-  font-size: 14px;
-}
-
-nav span { cursor: pointer; opacity: .9; }
-nav span:hover { opacity: 1; }
-
-.logo {
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
 /* ---------- HERO ---------- */
 .hero {
-  margin-top: 72px;
-  height: calc(100vh - 72px);
+  height: 100vh;
   background: url("tlo.jpg") center / cover no-repeat;
   position: relative;
 }
@@ -189,31 +159,18 @@ nav span:hover { opacity: 1; }
 
 <body>
 
-<header>
-  <div class="logo">GÓRNA PÓŁKA</div>
-  <nav>
-    <span>Meble</span>
-    <span>Pomieszczenia</span>
-    <span>Outlet</span>
-    <span>Kolekcje</span>
-    <span>Dekoracje</span>
-    <span>Próbki</span>
-    <span>Kontakt</span>
-  </nav>
-</header>
-
 <section class="hero"></section>
 
 <!-- CHAT BUTTON -->
 <button id="chat-toggle" aria-label="Otwórz czat">
-  <svg id="icon-mail" viewBox="0 0 24 24">
+  <svg viewBox="0 0 24 24">
     <path d="M2 4h20v16H2V4zm10 7L4 6v12h16V6l-8 5z"/>
   </svg>
 </button>
 
 <!-- CHAT WINDOW -->
 <div id="chatbox">
-  <div id="chat-header">Górna Półka · Asystent</div>
+  <div id="chat-header">Górna Półka · Konsultant</div>
   <div id="chat-window"></div>
   <div id="input-container">
     <input id="userInput" placeholder="Napisz wiadomość…" />
@@ -251,7 +208,6 @@ function addMessage(content, type, html=false) {
   div[html ? "innerHTML" : "innerText"] = content;
   chatWindow.appendChild(div);
   chatWindow.scrollTop = chatWindow.scrollHeight;
-  return div;
 }
 
 async function send() {
@@ -261,11 +217,7 @@ async function send() {
   addMessage(text, "user");
   input.value = "";
 
-  const loader = addMessage(
-    `<div class="loader"><span></span><span></span><span></span></div>`,
-    "bot",
-    true
-  );
+  addMessage(`<div class="loader"><span></span><span></span><span></span></div>`, "bot", true);
 
   try {
     const res = await fetch(WEBHOOK_URL, {
@@ -275,10 +227,10 @@ async function send() {
     });
 
     const data = await res.json();
-    loader.remove();
+    chatWindow.lastChild.remove();
     addMessage(data.output || data[0]?.output || "Błąd odpowiedzi", "bot");
   } catch {
-    loader.remove();
+    chatWindow.lastChild.remove();
     addMessage("Błąd połączenia.", "bot");
   }
 }
